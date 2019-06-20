@@ -1,0 +1,105 @@
+Cycle Consistency The idea of using transitivity as a
+way to regularize structured data has a long history. In
+visual tracking, enforcing simple forward-backward con-
+sistency has been a standard trick for decades [24, 48].
+In the language domain, verifying and improving transla-
+tions via “back translation and reconciliation” is a technique
+used by human translators
+
+
+--Formulation--
+
+G - F -- bijection G is inverse of F
+What is surjection ? What is injection?
+
+Losses : 1) Adversarial 2) Cycle-consistent 3) Identity loss
+
+-- Why Cycle? -- 
+
+Adversarial training can, in theory, learn mappings G
+and F that produce outputs identically distributed as target
+domains Y and X respectively (strictly speaking, this re-
+quires G and F to be stochastic functions)
+
+I. Goodfellow. NIPS 2016 tutorial: Generative ad-
+versarial networks. arXiv preprint arXiv:1701.00160,
+2016
+
+However,
+with large enough capacity, a network can map the same
+set of input images to any random permutation of images in
+the target domain, where any of the learned mappings can
+induce an output distribution that matches the target dis-
+tribution. Thus, adversarial losses alone cannot guarantee
+that the learned function can map an individual input x i to
+a desired output y i .
+
+
+-- Limitations --
+--- Structure---
+Examples-Teasing
+
+1. quick to GANS
+2. Image2Image translation: Objective, difficulties
+3. CycleLoss - idea - structure
+4. StyleTransfering - IdentityLoss
+5. Generator structure
+6. Discriminator structure - PatchGAN
+7. Training details
+8. My Model
+9. Handicaps of CycleGAN - Comparison
+
+Trainig GANs
+
+Training GANs consists in finding a Nash equilibrium to a two-player non-cooperative game. […] Unfortunately, finding Nash equilibria is a very difficult problem. Algorithms exist for specialized cases, but we are not aware of any that are feasible to apply to the GAN game, where the cost functions are non-convex, the parameters are continuous, and the parameter space is extremely high-dimensional
+
+Equilibium
+
+But with a GAN, every step taken down the hill changes the entire landscape a little. It’s a dynamic system where the optimization process is seeking not a minimum, but an equilibrium between two forces.
+
+
+
+
+On translation
+tasks that involve color and texture changes, like many of
+those reported above, the method often succeeds. We have
+also explored tasks that require geometric changes, with lit-
+tle success. For example, on the task of dog→cat transfigu-
+ration, the learned translation degenerates into making min-
+imal changes to the input (Figure 17). This failure might be
+caused by our generator architectures which are tailored for
+good performance on the appearance changes. Handling
+more varied and extreme transformations, especially geo-
+metric changes, is an important problem for future work.
+
+--Training Details -- 
+
+Training details We apply two techniques from recent
+works to stabilize our model training procedure. First,
+for L GAN (Equation 1), we replace the negative log like-
+lihood objective by a least-squares loss [35]. This loss is
+more stable during training and generates higher quality
+results. In particular, for a GAN loss L GAN (G, D, X, Y ),
+we train the G to minimize E x∼p data (x) [(D(G(x)) − 1) 2 ]
+and train the D to minimize E y∼p data (y) [(D(y) − 1) 2 ] +
+E x∼p data (x) [D(G(x)) 2 ].
+Second, to reduce model oscillation [15], we follow
+Shrivastava et al.’s strategy [46] and update the discrimi-
+nators using a history of generated images rather than the
+ones produced by the latest generators. We keep an image
+buffer that stores the 50 previously created images.
+
+
+-- Structures ---
+Structured losses for image modelingImage-to-imagetranslation problems are often formulated as per-pixel clas-sification or regression (e.g.,   [39, 58, 28, 35, 62]).  Theseformulations treat the output space as “unstructured” in thesense that each output pixel is considered conditionally in-dependent from all others given the input image.   Condi-tional  GANs  instead  learn  astructured loss.    Structuredlosses  penalize  the  joint  configuration  of  the  output.    AfakeG(x)xDrealDGxyxFigure 2: Training a conditional GAN to map edges→photo. Thediscriminator,D, learns to classify between fake (synthesized bythe generator) and real{edge, photo}tuples.  The generator,G,learns to fool the discriminator.   Unlike an unconditional GAN,both the generator and discriminator observe the input edge map.large body of literature has considered losses of this kind,with methods including conditional random fields [10], theSSIM  metric  [56],  feature  matching  [15],  nonparametriclosses [37], the convolutional pseudo-prior [57], and lossesbased  on  matching  covariance  statistics  [30].   The  condi-tional GAN is different in that the loss is learned, and can, intheory, penalize any possible structure that differs betweenoutput and target.
+
+--PatchGaN -- 
+discriminator we use a convo-lutional “PatchGAN” classifier, which only penalizes struc-ture at the scale of image patches. A similar PatchGAN ar-chitecture was previously proposed in [38] to capture localstyle statistics. Here we show that this approach is effectiveon a wider range of problems, and we investigate the effectof changing the patch size
+
+It  is  well  known  that  the  L2  loss  –  and  L1,  see  Fig-ure 4 – produces blurry results on image generation prob-lems  [34].   Although  these  losses  fail  to  encourage  high-
+frequency crispness, in many cases they nonetheless accu-rately capture the low frequencies. For problems where thisis the case, we do not need an entirely new framework toenforce correctness at the low frequencies.  L1 will alreadydo.This motivates restricting the GAN discriminator to onlymodel high-frequency structure,  relying on an L1 term toforce low-frequency correctness (Eqn. 4). In order to modelhigh-frequencies, it is sufficient to restrict our attention tothe structure in local image patches.  Therefore, we designa discriminator architecture – which we term aPatchGAN– that only penalizes structure at the scale of patches.  Thisdiscriminator tries to classify if eachN×Npatch in an im-age is real or fake.  We run this discriminator convolution-ally across the image, averaging all responses to provide theultimate output ofD.
+
+Such a discriminator effectively models the image as aMarkov random field, assuming independence between pix-els separated by more than a patch diameter.  This connec-tion was previously explored in [38], and is also the com-mon  assumption  in  models  of  texture  [17,  21]  and  style[16, 25, 22, 37].  Therefore, our PatchGAN can be under-stood as a form of texture/style los
+
+---InstanceNorm ---
+At inference time,  we run the generator net in exactlythe same manner as during the training phase.  This differsfrom the usual protocol in that we apply dropout at test time,and we apply batch normalization [29] using the statistics ofthe test batch, rather than aggregated statistics of the train-ing batch.  This approach to batch normalization, when thebatch  size  is  set  to  1,  has  been  termed  “instance  normal-ization” and has been demonstrated to be effective at im-age generation tasks [54]. In our experiments, we use batchsizes between 1 and 10 depending on the experiment.
