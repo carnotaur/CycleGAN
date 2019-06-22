@@ -2,7 +2,8 @@
 
 ![Alt text](pics/reconstruction.png?raw=true "Principle of CycleGAN")  
 
-Simple implementation of CycleGAN paper: https://arxiv.org/abs/1703.10593  
+__Simple implementation of CycleGAN paper__   
+Link to paper: https://arxiv.org/abs/1703.10593  
 Link to datasets used in paper: https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/
 Tutorial at tensorflow: https://hardikbansal.github.io/CycleGANBlog/
 
