@@ -1,5 +1,4 @@
-data
-анонс.txt
-models
+data/*
+models/*
 .ipynb_checkpoints
 *.pyc
